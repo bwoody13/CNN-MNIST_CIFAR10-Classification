@@ -2,26 +2,19 @@ import torch
 from torch import nn
 import torch.optim as optim
 import torch.nn.functional as F
+from torchvision import transforms
+
+from base_cnn import BaseCNN
 
 
-class MNISTCNN(nn.Module):
-    def __init__(
-            self,
-            epochs=10,
-            learning_rate=0.01,
-            batch_size=64,
-            weight_decay=0,
-            momentum=0,
-            device=None
-    ):
-        super(MNISTCNN, self).__init__()
-        self.learning_rate = learning_rate
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.weight_decay = weight_decay
-        self.momentum = momentum
-        self.criterion = nn.CrossEntropyLoss()
-        self.device = device if not device else torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+class MNISTCNN(BaseCNN):
+    def __init__(self, **kwargs):
+        if "additional_transforms" not in kwargs:
+            kwargs["additional_transforms"] = transforms.Compose([
+                transforms.RandomRotation(degrees=15)
+            ])
+        classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+        super(MNISTCNN, self).__init__(classes=classes, **kwargs)
 
         # Layers
         self.conv1 = nn.Conv2d(1, 32, 3, 1, 1)
@@ -51,3 +44,9 @@ class MNISTCNN(nn.Module):
         return optim.SGD(
             self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=self.momentum
         )
+
+    def do_additional_transforms(self, inputs):
+        if self.additional_transforms:
+            return self.additional_transforms(inputs)
+        else:
+            return input

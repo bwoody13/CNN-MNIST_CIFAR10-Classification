@@ -1,12 +1,13 @@
 import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
-from torch.nn import Module
 
 import matplotlib.pyplot as plt
 
+from base_cnn import BaseCNN
 
-def validate_model(model: Module, validation_loader: DataLoader):
+
+def validate_model(model: BaseCNN, validation_loader: DataLoader):
     model.eval()
     validation_loss = 0
     correct = 0
@@ -25,7 +26,13 @@ def validate_model(model: Module, validation_loader: DataLoader):
     return validation_loss, accuracy
 
 
-def train(model: Module, train_loader: DataLoader, val_loader: DataLoader, additional_transforms=None, patience=2):
+def train(model: BaseCNN,
+          train_loader: DataLoader,
+          val_loader: DataLoader,
+          additional_transforms=None,
+          patience=2,
+          check_train=False
+          ):
     model.to(model.device)
     train_losses = []
     train_counter = []
@@ -43,7 +50,7 @@ def train(model: Module, train_loader: DataLoader, val_loader: DataLoader, addit
         for i, (inputs, labels) in enumerate(train_loader, 0):
             inputs, labels = inputs.to(model.device), labels.to(model.device)
             if additional_transforms:
-                inputs = additional_transforms(inputs)
+                inputs = model.do_additional_transforms(inputs)
             # Zero the parameter gradients
             optimizer.zero_grad()
 
@@ -70,10 +77,13 @@ def train(model: Module, train_loader: DataLoader, val_loader: DataLoader, addit
                 )
                 running_loss = 0.0
 
-
         # Validation
         validation_loss, validation_accuracy = validate_model(model, val_loader)
         print(f'Validation Loss: {validation_loss:.4f}, Validation Accuracy: {validation_accuracy * 100:.2f}%')
+
+        if check_train:
+            train_loss, train_accuracy = validate_model(model, train_loader)
+            print(f'Train Loss: {train_loss:.4f}, Validation Accuracy: {train_accuracy * 100:.2f}%')
 
         # Check Early Stopping
         if validation_accuracy > best_accuracy:
@@ -94,7 +104,7 @@ def train(model: Module, train_loader: DataLoader, val_loader: DataLoader, addit
     plt.show()
 
 
-def test(model: Module, test_loader: DataLoader, classes):
+def test(model: BaseCNN, test_loader: DataLoader, classes):
     model.eval()
     test_loss = 0
     # correct = 0
@@ -122,4 +132,5 @@ def test(model: Module, test_loader: DataLoader, classes):
 
     test_loss /= len(test_loader.dataset)
     accuracy = 100. * correct / len(test_loader.dataset)
-    print(f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)')
+    print(
+        f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)')

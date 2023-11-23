@@ -2,29 +2,21 @@ import torch
 from torch import nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
+from torchvision import transforms
+
+from base_cnn import BaseCNN
 
 
-class MyCNN(nn.Module):
-    def __init__(
-            self,
-            epochs=10,
-            learning_rate=0.01,
-            batch_size=64,
-            weight_decay=0,
-            momentum=0,
-            gamma=0.1,
-            device=None
-    ):
-        super(MyCNN, self).__init__()
-        self.learning_rate = learning_rate
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.weight_decay = weight_decay
-        self.momentum = momentum
+class CIFAR10CNN(BaseCNN):
+    def __init__(self, gamma=0.1, **kwargs):
+        if "additional_transforms" not in kwargs:
+            kwargs["additional_transforms"] = transforms.Compose([
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomCrop(size=32, padding=4),
+            ])
+        classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+        super(CIFAR10CNN, self).__init__(classes=classes, **kwargs)
         self.gamma = gamma
-        self.device = device if device != None else torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-        self.criterion = nn.CrossEntropyLoss()
 
         # Layers
         self.conv1 = nn.Sequential(
