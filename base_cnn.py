@@ -23,7 +23,7 @@ class BaseCNN(nn.Module):
         self.batch_size = batch_size
         self.weight_decay = weight_decay
         self.momentum = momentum
-        self.device = device if not device else torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        self.device = device if device else torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.additional_transforms = additional_transforms
         self.criterion = criterion
         self.classes = classes
