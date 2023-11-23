@@ -13,7 +13,7 @@ class BaseCNN(nn.Module):
             momentum=0,
             device=None,
             additional_transforms=None,
-            criterion=nn.CrossEntropyLoss()
+            criterion=nn.CrossEntropyLoss(),
             classes=None
     ):
         super(BaseCNN, self).__init__()
