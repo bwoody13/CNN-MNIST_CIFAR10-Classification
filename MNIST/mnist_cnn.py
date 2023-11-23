@@ -3,7 +3,6 @@ from torch import nn
 import torch.optim as optim
 import torch.nn.functional as F
 from torchvision import transforms
-
 from base_cnn import BaseCNN
 
 

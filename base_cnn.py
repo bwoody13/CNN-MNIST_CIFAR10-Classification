@@ -3,6 +3,7 @@ from torch import nn
 import torch.optim as optim
 from torchvision import transforms
 
+
 class BaseCNN(nn.Module):
     def __init__(
             self,

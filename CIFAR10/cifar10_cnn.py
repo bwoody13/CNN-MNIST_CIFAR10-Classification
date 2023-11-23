@@ -3,7 +3,6 @@ from torch import nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
-
 from base_cnn import BaseCNN
 
 
