@@ -118,8 +118,8 @@ def test(model: BaseCNN, test_loader: DataLoader):
             test_loss += F.nll_loss(output, targets, reduction='sum').item()  # Calculate the test loss
             preds = output.argmax(dim=1, keepdim=True)  # Get the index of the maximum log-probability
             for pred, label in zip(preds, targets):
-                correct_pred[classes[label]] += pred.eq(label.view_as(pred)).item()  # Count correct predictions
-                total_pred[classes[label]] += 1
+                correct_pred[model.classes[label]] += pred.eq(label.view_as(pred)).item()  # Count correct predictions
+                total_pred[model.classes[label]] += 1
 
     # print accuracy for each class
     correct = 0
