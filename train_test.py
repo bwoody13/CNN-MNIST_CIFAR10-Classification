@@ -48,8 +48,7 @@ def train(model: BaseCNN,
 
         for i, (inputs, labels) in enumerate(train_loader, 0):
             inputs, labels = inputs.to(model.device), labels.to(model.device)
-            if additional_transforms:
-                inputs = model.do_additional_transforms(inputs)
+            inputs = model.do_additional_transforms(inputs)
             # Zero the parameter gradients
             optimizer.zero_grad()
 
