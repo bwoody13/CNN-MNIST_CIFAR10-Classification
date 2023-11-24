@@ -103,14 +103,14 @@ def train(model: BaseCNN,
     plt.show()
 
 
-def test(model: BaseCNN, test_loader: DataLoader, classes):
+def test(model: BaseCNN, test_loader: DataLoader):
     model.eval()
     test_loss = 0
     # correct = 0
 
     # For class count predictions
-    correct_pred = {classname: 0 for classname in classes}
-    total_pred = {classname: 0 for classname in classes}
+    correct_pred = {classname: 0 for classname in model.classes}
+    total_pred = {classname: 0 for classname in model.classes}
 
     with torch.no_grad():
         for data, targets in test_loader:
