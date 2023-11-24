@@ -29,7 +29,6 @@ def validate_model(model: BaseCNN, validation_loader: DataLoader):
 def train(model: BaseCNN,
           train_loader: DataLoader,
           val_loader: DataLoader,
-          additional_transforms=None,
           patience=2,
           check_train=False
           ):
