@@ -5,7 +5,7 @@ import torchvision.transforms as transforms
 from streamlit_drawable_canvas import st_canvas
 
 # Load the MNIST model from the .pth file
-mnist_model = torch.load("MNIST/models/99_29-Test.pth", map_location=torch.device('cpu'))
+mnist_model = torch.load("MNIST/models/first_trained_model.pth", map_location=torch.device('cpu'))
 mnist_model.eval()  # Set the model to evaluation mode
 
 # Streamlit Interface Setup

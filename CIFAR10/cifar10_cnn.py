@@ -11,6 +11,7 @@ class CIFAR10CNN(BaseCNN):
         if "additional_transforms" not in kwargs:
             kwargs["additional_transforms"] = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
                 transforms.RandomCrop(size=32, padding=4),
             ])
         classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
@@ -61,6 +62,7 @@ class CIFAR10CNN(BaseCNN):
         )
         self.fc3 = nn.Sequential(
             nn.Linear(512, 256),
+            nn.ReLU(),
         )
         # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
         self.output = nn.Linear(256, 10)
@@ -87,12 +89,17 @@ class CIFAR10CNN(BaseCNN):
         return self.output(x)
 
     def make_optimizer(self):
-        return optim.SGD(
+        # return optim.SGD(
+        #     self.parameters(),
+        #     lr=self.learning_rate,
+        #     weight_decay=self.weight_decay,
+        #     momentum=self.momentum,
+        #     nesterov=True,
+        # )
+        return optim.Adam(
             self.parameters(),
             lr=self.learning_rate,
             weight_decay=self.weight_decay,
-            momentum=self.momentum,
-            nesterov=True,
         )
 
     def make_schedule(self, optimizer):
