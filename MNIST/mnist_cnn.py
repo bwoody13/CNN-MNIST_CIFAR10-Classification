@@ -10,7 +10,7 @@ class MNISTCNN(BaseCNN):
     def __init__(self, **kwargs):
         if "additional_transforms" not in kwargs:
             kwargs["additional_transforms"] = transforms.Compose([
-                transforms.RandomRotation(degrees=15)
+                transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.7, 1.1)),
             ])
         classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
         super(MNISTCNN, self).__init__(classes=classes, **kwargs)
@@ -40,8 +40,8 @@ class MNISTCNN(BaseCNN):
         return output
 
     def make_optimizer(self):
-        return optim.SGD(
-            self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay, momentum=self.momentum
+        return optim.Adam(
+            self.parameters(), lr=self.learning_rate, weight_decay=self.weight_decay,
         )
 
     def do_additional_transforms(self, inputs):
