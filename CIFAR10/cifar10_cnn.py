@@ -89,18 +89,18 @@ class CIFAR10CNN(BaseCNN):
         return self.output(x)
 
     def make_optimizer(self):
-        # return optim.SGD(
-        #     self.parameters(),
-        #     lr=self.learning_rate,
-        #     weight_decay=self.weight_decay,
-        #     momentum=self.momentum,
-        #     nesterov=True,
-        # )
-        return optim.Adam(
+        return optim.SGD(
             self.parameters(),
             lr=self.learning_rate,
             weight_decay=self.weight_decay,
+            momentum=self.momentum,
+            nesterov=True,
         )
+        # return optim.Adam(
+        #     self.parameters(),
+        #     lr=self.learning_rate,
+        #     weight_decay=self.weight_decay,
+        # )
 
     def make_schedule(self, optimizer):
         return StepLR(optimizer, step_size=self.epochs // 4, gamma=self.gamma)
