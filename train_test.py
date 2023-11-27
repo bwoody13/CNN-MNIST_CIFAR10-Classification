@@ -81,7 +81,7 @@ def train(model: BaseCNN,
 
         if check_train:
             train_loss, train_accuracy = validate_model(model, train_loader)
-            print(f'Train Loss: {train_loss:.4f}, Validation Accuracy: {train_accuracy * 100:.2f}%')
+            print(f'Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%')
 
         # Check Early Stopping
         if validation_accuracy > best_accuracy:
