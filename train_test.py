@@ -1,4 +1,5 @@
 import torch
+from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
@@ -30,14 +31,16 @@ def train(model: BaseCNN,
           train_loader: DataLoader,
           val_loader: DataLoader,
           patience=2,
-          check_train=False
+          check_train=False,
+          scheduler=False,
           ):
     model.to(model.device)
     train_losses = []
     train_counter = []
 
     optimizer = model.make_optimizer()
-
+    if scheduler:
+        lr_scheduler = StepLR(optimizer, step_size=2, gamma=0.7)
     # For early stopping
     best_accuracy = 0.0
     earlystop_count = 0
@@ -82,6 +85,8 @@ def train(model: BaseCNN,
         if check_train:
             train_loss, train_accuracy = validate_model(model, train_loader)
             print(f'Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%')
+
+        lr_scheduler.step()
 
         # Check Early Stopping
         if validation_accuracy > best_accuracy:
