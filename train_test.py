@@ -6,6 +6,7 @@ import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 from base_cnn import BaseCNN
+from scheduled import Scheduled
 
 
 def validate_model(model: BaseCNN, validation_loader: DataLoader):
@@ -32,15 +33,15 @@ def train(model: BaseCNN,
           val_loader: DataLoader,
           patience=2,
           check_train=False,
-          scheduler=False,
+          use_scheduler=False,
           ):
     model.to(model.device)
     train_losses = []
     train_counter = []
 
     optimizer = model.make_optimizer()
-    if scheduler:
-        lr_scheduler = StepLR(optimizer, step_size=2, gamma=0.7)
+    if use_scheduler and isinstance(model, Scheduled):
+        lr_scheduler = model.make_scheduler(optimizer)
     # For early stopping
     best_accuracy = 0.0
     earlystop_count = 0
@@ -86,7 +87,8 @@ def train(model: BaseCNN,
             train_loss, train_accuracy = validate_model(model, train_loader)
             print(f'Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy * 100:.2f}%')
 
-        lr_scheduler.step()
+        if use_scheduler and isinstance(model, Scheduled):
+            lr_scheduler.step()
 
         # Check Early Stopping
         if validation_accuracy > best_accuracy:

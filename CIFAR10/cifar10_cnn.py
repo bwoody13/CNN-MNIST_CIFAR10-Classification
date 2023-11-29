@@ -4,10 +4,11 @@ import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 from torchvision import transforms
 from base_cnn import BaseCNN
+from scheduled import Scheduled
 
 
-class CIFAR10CNN(BaseCNN):
-    def __init__(self, gamma=0.1, **kwargs):
+class CIFAR10CNN(BaseCNN, Scheduled):
+    def __init__(self, gamma=0.7, step=4, **kwargs):
         if "additional_transforms" not in kwargs:
             kwargs["additional_transforms"] = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
@@ -15,7 +16,8 @@ class CIFAR10CNN(BaseCNN):
                 transforms.RandomCrop(size=32, padding=4),
             ])
         classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-        super(CIFAR10CNN, self).__init__(classes=classes, **kwargs)
+        BaseCNN.__init__(classes=classes, **kwargs)
+        Scheduled.__init__(gamma=gamma, step=step)
         self.gamma = gamma
 
         # Layers
@@ -70,22 +72,16 @@ class CIFAR10CNN(BaseCNN):
     def forward(self, x):
         x = self.conv1(x)
         x = self.dropout1(x)
-        # print(x.shape)
         x = self.conv2(x)
-        # print(x.shape)
         x = self.conv3(x)
-        # print(x.shape)
         x = self.conv4(x)
-        # print(x.shape)
         x = self.conv5(x)
-        # print(x.shape)
         x = self.dropout2(x)
         x = torch.flatten(x, 1)
         x = self.fc1(x)
         x = self.dropout3(x)
         x = self.fc2(x)
         x = self.fc3(x)
-        # output = F.log_softmax(x, dim=1)
         return self.output(x)
 
     def make_optimizer(self):
@@ -96,11 +92,6 @@ class CIFAR10CNN(BaseCNN):
             momentum=self.momentum,
             nesterov=True,
         )
-        # return optim.Adam(
-        #     self.parameters(),
-        #     lr=self.learning_rate,
-        #     weight_decay=self.weight_decay,
-        # )
 
     def make_schedule(self, optimizer):
         return StepLR(optimizer, step_size=self.epochs // 4, gamma=self.gamma)

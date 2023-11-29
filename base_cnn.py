@@ -13,7 +13,8 @@ class BaseCNN(nn.Module):
             device=None,
             additional_transforms=None,
             criterion=nn.CrossEntropyLoss(),
-            classes=None
+            classes=None,
+            **kwargs
     ):
         super(BaseCNN, self).__init__()
         self.epochs = epochs
