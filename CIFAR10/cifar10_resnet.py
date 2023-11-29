@@ -33,8 +33,8 @@ class ResNetBlock(nn.Module):
 
 class CIFAR10ResNet(BaseCNN, Scheduled):
     def __init__(self, num_blocks, gamma=0.5, step=5, **kwargs):
-        BaseCNN.__init__(**kwargs)
-        Scheduled.__init__(gamma=gamma, step=step)
+        BaseCNN.__init__(self, **kwargs)
+        Scheduled.__init__(self, gamma=gamma, step=step)
 
         if "additional_transforms" not in kwargs:
             self.additional_transforms = transforms.Compose([

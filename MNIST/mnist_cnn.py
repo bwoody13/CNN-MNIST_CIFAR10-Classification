@@ -15,7 +15,7 @@ class MNISTCNN(BaseCNN, Scheduled):
             ])
         classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
         BaseCNN.__init__(self, classes=classes, **kwargs)
-        Scheduled.__init__(gamma=gamma, step=step)
+        Scheduled.__init__(self, gamma=gamma, step=step)
 
         # Layers
         self.conv1 = nn.Conv2d(1, 32, 3, 1, 1)

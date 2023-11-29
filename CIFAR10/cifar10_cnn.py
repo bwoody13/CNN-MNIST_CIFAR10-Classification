@@ -16,8 +16,8 @@ class CIFAR10CNN(BaseCNN, Scheduled):
                 transforms.RandomCrop(size=32, padding=4),
             ])
         classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-        BaseCNN.__init__(classes=classes, **kwargs)
-        Scheduled.__init__(gamma=gamma, step=step)
+        BaseCNN.__init__(self, classes=classes, **kwargs)
+        Scheduled.__init__(self, gamma=gamma, step=step)
         self.gamma = gamma
 
         # Layers
