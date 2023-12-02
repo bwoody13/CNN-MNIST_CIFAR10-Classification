@@ -7,21 +7,31 @@ from base_cnn import BaseCNN
 from scheduled import Scheduled
 
 
+# Option A shortcut connection
+class ShortcutConnection(nn.Module):
+    def __init__(self, channels, stride):
+        super(ShortcutConnection, self).__init__()
+        self.channels = channels
+        self.stride = stride
+
+    def forward(self, x):
+        return F.pad(x[:, :, ::self.stride, ::self.stride],
+                     (0, 0, 0, 0, self.channels // 4, self.channels // 4),
+                     "constant", 0)
+
+
 class ResNetBlock(nn.Module):
 
-    def __init__(self, in_planes, planes, stride=1):
+    def __init__(self, in_channels, out_channels, stride=1):
         super(ResNetBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn2 = nn.BatchNorm2d(planes)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(out_channels)
 
         self.shortcut = nn.Sequential()
-        if stride != 1 or in_planes != planes:
-            self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes)
-            )
+        if stride != 1 or in_channels != out_channels:
+            self.shortcut = ShortcutConnection(out_channels, stride)
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
@@ -32,34 +42,36 @@ class ResNetBlock(nn.Module):
 
 
 class CIFAR10ResNet(BaseCNN, Scheduled):
-    def __init__(self, num_blocks, gamma=0.5, step=5, **kwargs):
+    def __init__(self, num_blocks, gamma=0.1, epochs=120, **kwargs):
         classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
         BaseCNN.__init__(self, classes=classes, **kwargs)
+        step = int(self.epochs * 0.4)
         Scheduled.__init__(self, gamma=gamma, step=step)
 
         if "additional_transforms" not in kwargs:
             self.additional_transforms = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, padding=4),
-                transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+                # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
             ])
 
-        self.in_planes = 64
+        self.in_channels = 64
+        self.dataset_size = 50000
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
-        self.layer1 = self._make_layer(64, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(128, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512, 10)
+        self.layer1 = self._make_layer(16, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(32, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(64, num_blocks[2], stride=2)
+        self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.linear = nn.Linear(64, 10)
 
-    def _make_layer(self, planes, num_blocks, stride):
-        strides = [stride] + [1]*(num_blocks-1)
+    def _make_layer(self, channels, num_blocks, stride):
+        strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
-            layers.append(ResNetBlock(self.in_planes, planes, stride))
-            self.in_planes = planes
+            layers.append(ResNetBlock(self.in_planes, channels, stride))
+            self.in_channels = channels
         return nn.Sequential(*layers)
 
     def forward(self, x):
@@ -68,7 +80,7 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
         out = self.layer2(out)
         out = self.layer3(out)
         out = self.layer4(out)
-        out = F.avg_pool2d(out, 4)
+        out = self.global_avg_pool(out)
         out = out.view(out.size(0), -1)
         out = self.linear(out)
         return out
@@ -77,7 +89,8 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
         return optim.SGD(
             self.parameters(),
             lr=self.learning_rate,
-            momentum=0.9,
+            momentum=self.momentum,
             weight_decay=self.weight_decay,
             nesterov=True
         )
+
