@@ -57,7 +57,7 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
             self.additional_transforms = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, padding=4),
-                transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+                # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
             ])
 
         self.in_channels = 16
