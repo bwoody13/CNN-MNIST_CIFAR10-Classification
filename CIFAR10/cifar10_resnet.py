@@ -55,7 +55,7 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
                 # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
             ])
 
-        self.in_channels = 64
+        self.in_channels = 16
         self.dataset_size = 50000
 
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
