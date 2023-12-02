@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.optim as optim
 import torch.nn.functional as F
+import torch.nn.init as init
 from torchvision import transforms
 from base_cnn import BaseCNN
 from scheduled import Scheduled
@@ -41,18 +42,22 @@ class ResNetBlock(nn.Module):
         return out
 
 
+def _init_weights(m):
+    if isinstance(m, nn.Linear) or isinstance(m, nn.Conv2d):
+        init.kaiming_normal_(m.weight)
+
+
 class CIFAR10ResNet(BaseCNN, Scheduled):
-    def __init__(self, num_blocks, gamma=0.1, epochs=120, **kwargs):
+    def __init__(self, num_blocks, gamma=0.1, step=42, epochs=120, **kwargs):
         classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
         BaseCNN.__init__(self, classes=classes, epochs=epochs, **kwargs)
-        step = int(self.epochs * 0.4)
         Scheduled.__init__(self, gamma=gamma, step=step)
 
         if "additional_transforms" not in kwargs:
             self.additional_transforms = transforms.Compose([
                 transforms.RandomHorizontalFlip(),
                 transforms.RandomCrop(32, padding=4),
-                # transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
+                transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1)
             ])
 
         self.in_channels = 16
@@ -65,6 +70,8 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
         self.layer3 = self._make_layer(64, num_blocks[2], stride=2)
         self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.linear = nn.Linear(64, 10)
+
+        self.apply(_init_weights)
 
     def _make_layer(self, channels, num_blocks, stride):
         strides = [stride] + [1] * (num_blocks - 1)
