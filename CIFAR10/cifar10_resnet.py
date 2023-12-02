@@ -44,7 +44,7 @@ class ResNetBlock(nn.Module):
 class CIFAR10ResNet(BaseCNN, Scheduled):
     def __init__(self, num_blocks, gamma=0.1, epochs=120, **kwargs):
         classes = ('plane', 'car', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
-        BaseCNN.__init__(self, classes=classes, **kwargs)
+        BaseCNN.__init__(self, classes=classes, epochs=epochs, **kwargs)
         step = int(self.epochs * 0.4)
         Scheduled.__init__(self, gamma=gamma, step=step)
 
@@ -70,7 +70,7 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
         strides = [stride] + [1] * (num_blocks - 1)
         layers = []
         for stride in strides:
-            layers.append(ResNetBlock(self.in_planes, channels, stride))
+            layers.append(ResNetBlock(self.in_channels, channels, stride))
             self.in_channels = channels
         return nn.Sequential(*layers)
 
