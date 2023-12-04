@@ -4,11 +4,14 @@ import torch
 import torchvision.transforms as transforms
 from streamlit_drawable_canvas import st_canvas
 from utils import scale_and_center_digit
+from train_test import test
 
 # Load the MNIST model from the .pth file
-mnist_model = torch.load("MNIST/models/99_43-Test.pth", map_location=torch.device('cpu'))
+mnist_model = torch.load("MNIST/models/99_43-Test.pth",
+                         map_location=torch.device('cpu'))
 mnist_model.eval()  # Set the model to evaluation mode
-cifar10_model = torch.load("CIFAR10/models/first_trained_model.pth", map_location=torch.device("cpu"))
+cifar10_model = torch.load("CIFAR10/models/cifar10_res_net_v2.pth",
+                           map_location=torch.device("cpu"))
 cifar10_model.eval()
 
 # Streamlit Interface Setup
