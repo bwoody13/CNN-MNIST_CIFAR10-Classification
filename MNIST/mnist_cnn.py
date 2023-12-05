@@ -20,7 +20,7 @@ class MNISTCNN(BaseCNN, Scheduled):
 
         # Layers
         self.conv1 = nn.Conv2d(1, 64, 3, 1, 1)
-        self.bn1 = nn.BatchNorm2d(128)
+        self.bn1 = nn.BatchNorm2d(64)
         self.conv2 = nn.Conv2d(64, 128, 3, 1, 1)
         self.bn2 = nn.BatchNorm2d(128)
         self.pool = nn.MaxPool2d(2, 2)
