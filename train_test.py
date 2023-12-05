@@ -126,8 +126,9 @@ def test(model: BaseCNN, test_loader: DataLoader):
         for data, targets in test_loader:
             data, targets = data.to(model.device), targets.to(model.device)
             output = model(data)
-            test_loss += F.nll_loss(output, targets, reduction='sum').item()  # Calculate the test loss
-            preds = output.argmax(dim=1, keepdim=True)  # Get the index of the maximum log-probability
+            test_loss += F.nll_loss(output, targets, reduction='sum').item()
+            # Get the index of the maximum log-probability
+            preds = output.argmax(dim=1, keepdim=True)
             for pred, label in zip(preds, targets):
                 correct_pred[model.classes[label]] += pred.eq(label.view_as(pred)).item()  # Count correct predictions
                 total_pred[model.classes[label]] += 1
