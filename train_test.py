@@ -1,5 +1,4 @@
 import torch
-from torch.optim.lr_scheduler import StepLR
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 
@@ -45,6 +44,7 @@ def train(model: BaseCNN,
     # For early stopping
     best_accuracy = 0.0
     earlystop_count = 0
+    best_model_state = None
 
     for epoch in range(model.epochs):
         model.train()  # Set the model to training mode
@@ -94,12 +94,16 @@ def train(model: BaseCNN,
         if validation_accuracy > best_accuracy:
             best_accuracy = validation_accuracy
             earlystop_count = 0
+            best_model_state = model.state_dict().copy
         else:
             earlystop_count += 1
 
         if earlystop_count > patience:
             print(f"Early stopping! No improvement for the last {patience} epochs.")
             break
+
+    if best_model_state:
+        model.load_state_dict(best_model_state)
 
     plt.figure()
     plt.plot(train_counter, train_losses, color='blue')
@@ -122,8 +126,9 @@ def test(model: BaseCNN, test_loader: DataLoader):
         for data, targets in test_loader:
             data, targets = data.to(model.device), targets.to(model.device)
             output = model(data)
-            test_loss += F.nll_loss(output, targets, reduction='sum').item()  # Calculate the test loss
-            preds = output.argmax(dim=1, keepdim=True)  # Get the index of the maximum log-probability
+            test_loss += F.nll_loss(output, targets, reduction='sum').item()
+            # Get the index of the maximum log-probability
+            preds = output.argmax(dim=1, keepdim=True)
             for pred, label in zip(preds, targets):
                 correct_pred[model.classes[label]] += pred.eq(label.view_as(pred)).item()  # Count correct predictions
                 total_pred[model.classes[label]] += 1
