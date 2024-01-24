@@ -98,4 +98,3 @@ class CIFAR10ResNet(BaseCNN, Scheduled):
             weight_decay=self.weight_decay,
             nesterov=True
         )
-

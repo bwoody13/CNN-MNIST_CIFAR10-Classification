@@ -48,24 +48,27 @@ with col1:
     if st.button("Run Model on Test Data"):
         with st.spinner('Testing MNIST...'):
             print("Testing MNIST")
-            data_mean = 0.1307
-            data_std = 0.3081
-            init_trans = transforms.Compose([
-                ToTensor(),
-                Normalize((data_mean,), (data_std,))
-            ])
-            if 'm_test_ds' not in st.session_state:
+            if 'm_pred_html' not in st.session_state:
+                data_mean = 0.1307
+                data_std = 0.3081
+                init_trans = transforms.Compose([
+                    ToTensor(),
+                    Normalize((data_mean,), (data_std,))
+                ])
+                # if 'm_test_ds' not in st.session_state:
                 m_test_ds = MNIST(root='data/', train=False, download=False,
                                   transform=init_trans)
-                st.session_state['m_test_ds'] = m_test_ds
-            else:
-                m_test_ds = st.session_state['m_test_ds']
-            m_test_loader = DataLoader(m_test_ds, mnist_model.batch_size)
-            loss, acc, class_acc = test(mnist_model, m_test_loader, is_dev)
-            st.write(f"Test Loss: {loss:.3f}, Test Accuracy: {acc:.3f}")
-            preds = pd.DataFrame(class_acc, columns=['Class', 'Accuracy'])
-            pred_html = preds.to_html()
-            st.markdown(pred_html, unsafe_allow_html=True)
+                #     st.session_state['m_test_ds'] = m_test_ds
+                # else:
+                #     m_test_ds = st.session_state['m_test_ds']
+                m_test_loader = DataLoader(m_test_ds, mnist_model.batch_size)
+                loss, acc, class_acc = test(mnist_model, m_test_loader, is_dev)
+                st.session_state['m_loss_acc'] = f"Test Loss: {loss:.3f}, Test Accuracy: {acc:.3f}"
+                preds = pd.DataFrame(class_acc, columns=['Class', 'Accuracy'])
+                m_pred_html = preds.to_html()
+                st.session_state['m_pred_html'] = m_pred_html
+            st.write(st.session_state['m_loss_acc'])
+            st.markdown(st.session_state['m_pred_html'], unsafe_allow_html=True)
             st.markdown("---")
 
     # Create a canvas to draw on
@@ -125,23 +128,26 @@ with col2:
     if st.button("Run Model on Test Data", key="run-model-c10"):
         with st.spinner('Testing CIFAR10...'):
             print("Testing CIFAR10")
-            init_trans = transforms.Compose([
-                ToTensor(),
-                Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-            ])
+            if 'c_pred_html' not in st.session_state:
+                init_trans = transforms.Compose([
+                    ToTensor(),
+                    Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                ])
 
-            if 'c_test_ds' not in st.session_state:
-                c_test_ds = CIFAR10(root='data/', train=False, download=False,
-                                    transform=init_trans)
-                st.session_state['c_test_ds'] = c_test_ds
-            else:
-                c_test_ds = st.session_state['c_test_ds']
-            c_test_loader = DataLoader(c_test_ds, cifar10_model.batch_size)
-            loss, acc, class_acc = test(cifar10_model, c_test_loader, is_dev)
-            st.write(f"Test Loss: {loss:.3f}, Test Accuracy: {acc:.3f}")
-            preds = pd.DataFrame(class_acc, columns=['Class', 'Accuracy'])
-            pred_html = preds.to_html()
-            st.markdown(pred_html, unsafe_allow_html=True)
+                if 'c_test_ds' not in st.session_state:
+                    c_test_ds = CIFAR10(root='data/', train=False, download=False,
+                                        transform=init_trans)
+                    st.session_state['c_test_ds'] = c_test_ds
+                else:
+                    c_test_ds = st.session_state['c_test_ds']
+                c_test_loader = DataLoader(c_test_ds, cifar10_model.batch_size)
+                loss, acc, class_acc = test(cifar10_model, c_test_loader, is_dev)
+                st.session_state['c_loss_acc'] = f"Test Loss: {loss:.3f}, Test Accuracy: {acc:.3f}"
+                preds = pd.DataFrame(class_acc, columns=['Class', 'Accuracy'])
+                c_pred_html = preds.to_html()
+                st.session_state['c_pred_html'] = c_pred_html
+            st.write(st.session_state['c_loss_acc'])
+            st.markdown(st.session_state['c_pred_html'], unsafe_allow_html=True)
             st.markdown("---")
 
     st.write("Upload an image of an airplane, car, bird, cat, deer, dog, frog,"
