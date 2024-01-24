@@ -14,19 +14,28 @@ from save_load import CIFAR10_type, MNIST_type, load_model, load_state_dict
 from train_test import test
 
 
-run_tests = '--test' in sys.argv
+is_dev = 'dev' in sys.argv
 
 # Load the MNIST model
-mnist_model = MNISTCNN()
-load_state_dict(mnist_model, "99_52-Test", MNIST_type)
-mnist_model.eval()
+if "mnist_model" not in st.session_state:
+    mnist_model = MNISTCNN()
+    load_state_dict(mnist_model, "99_52-Test", MNIST_type)
+    mnist_model.eval()
+    st.session_state["mnist_model"] = mnist_model
+else:
+    mnist_model = st.session_state["mnist_model"]
 
 # Load the CIFAR10 model
-cifar10_model = load_model("cifar10_res_net_v2", CIFAR10_type)
-cifar10_model.eval()
+if "cifar10_model" not in st.session_state:
+    cifar10_model = load_model("cifar10_res_net_v2", CIFAR10_type)
+    cifar10_model.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    cifar10_model.eval()
+else:
+    cifar10_model = st.session_state["cifar10_model"]
 
 # Streamlit Interface Setup
 st.title("MNIST & CIFAR10 Prediction App")
+st.write("Check the test set performace by clicking on the buttons for MNIST or CIFAR10. Note this may take a while. For faster testing and running models try using the notebook in the repo.")
 st.write("Draw a digit in the canvas below for MNIST or upload an image for CIFAR10.")
 
 col1, col2 = st.columns(2)
@@ -34,8 +43,9 @@ col1, col2 = st.columns(2)
 with col1:
     st.header("MNIST")
 
+    st.write("Click below to run the MNIST CNN on the test data loaded directly from PyTorch.")
     # Run test set on model
-    if run_tests:
+    if st.button("Run Model on Test Data"):
         with st.spinner('Testing MNIST...'):
             print("Testing MNIST")
             data_mean = 0.1307
@@ -44,20 +54,29 @@ with col1:
                 ToTensor(),
                 Normalize((data_mean,), (data_std,))
             ])
-            test_ds = MNIST(root='data/', train=False, download=False,
-                            transform=init_trans)
-            test_loader = DataLoader(test_ds, mnist_model.batch_size)
-            test(mnist_model, test_loader)
+            if 'm_test_ds' not in st.session_state:
+                m_test_ds = MNIST(root='data/', train=False, download=False,
+                                  transform=init_trans)
+                st.session_state['m_test_ds'] = m_test_ds
+            else:
+                m_test_ds = st.session_state['m_test_ds']
+            m_test_loader = DataLoader(m_test_ds, mnist_model.batch_size)
+            loss, acc, class_acc = test(mnist_model, m_test_loader, is_dev)
+            st.write(f"Test Loss: {loss:.3f}, Test Accuracy: {acc:.3f}")
+            preds = pd.DataFrame(class_acc, columns=['Class', 'Accuracy'])
+            pred_html = preds.to_html()
+            st.markdown(pred_html, unsafe_allow_html=True)
+            st.markdown("---")
 
     # Create a canvas to draw on
     st.write("Draw below to access a prediction for your digit between 0 and 9. Note to get more accurate results draw images in the same format and sizing as MNIST dataset has.")
     canvas_result = st_canvas(
-        fill_color="rgba(255, 165, 0, 0.3)",  # Canvas fill color
-        stroke_width=32,  # Increased stroke width for better scaling
-        stroke_color="#FFFFFF",  # Pen color
-        background_color="#000000",  # Canvas background
-        height=280,  # Increased canvas height for better drawing
-        width=280,  # Increased canvas width for better drawing
+        fill_color="rgba(255, 165, 0, 0.3)",
+        stroke_width=32,
+        stroke_color="#FFFFFF",
+        background_color="#000000",
+        height=280,
+        width=280,
         drawing_mode="freedraw",
         key="canvas",
     )
@@ -101,8 +120,9 @@ with col1:
 with col2:
     st.header("CIFAR10")
 
+    st.write("Click below to run the CIFAR10 CNN on the test data loaded directly from PyTorch.")
     # Run test set
-    if run_tests:
+    if st.button("Run Model on Test Data", key="run-model-c10"):
         with st.spinner('Testing CIFAR10...'):
             print("Testing CIFAR10")
             init_trans = transforms.Compose([
@@ -110,12 +130,21 @@ with col2:
                 Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
 
-            test_ds = CIFAR10(root='data/', train=False, download=True,
-                              transform=init_trans)
-            test_loader = DataLoader(test_ds, cifar10_model.batch_size)
-            test(cifar10_model, test_loader)
+            if 'c_test_ds' not in st.session_state:
+                c_test_ds = CIFAR10(root='data/', train=False, download=False,
+                                    transform=init_trans)
+                st.session_state['c_test_ds'] = c_test_ds
+            else:
+                c_test_ds = st.session_state['c_test_ds']
+            c_test_loader = DataLoader(c_test_ds, cifar10_model.batch_size)
+            loss, acc, class_acc = test(cifar10_model, c_test_loader, is_dev)
+            st.write(f"Test Loss: {loss:.3f}, Test Accuracy: {acc:.3f}")
+            preds = pd.DataFrame(class_acc, columns=['Class', 'Accuracy'])
+            pred_html = preds.to_html()
+            st.markdown(pred_html, unsafe_allow_html=True)
+            st.markdown("---")
 
-    st.write("Updload an image of an airplane, car, bird, cat, deer, dog, frog,"
+    st.write("Upload an image of an airplane, car, bird, cat, deer, dog, frog,"
              " horse, ship, or truck to get a prediction for what the image is")
     uploaded_file = st.file_uploader("Upload an image for CIFAR10 prediction",
                                      type=['png', 'jpg', 'jpeg'])

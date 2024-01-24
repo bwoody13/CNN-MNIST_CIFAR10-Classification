@@ -113,7 +113,7 @@ def train(model: BaseCNN,
     plt.show()
 
 
-def test(model: BaseCNN, test_loader: DataLoader):
+def test(model: BaseCNN, test_loader: DataLoader, verbose=False):
     model.eval()
     test_loss = 0
     # correct = 0
@@ -121,9 +121,12 @@ def test(model: BaseCNN, test_loader: DataLoader):
     # For class count predictions
     correct_pred = {classname: 0 for classname in model.classes}
     total_pred = {classname: 0 for classname in model.classes}
-
+    batch_num = 1
     with torch.no_grad():
         for data, targets in test_loader:
+            if verbose:
+                print(f"batch {batch_num} started")
+                batch_num += 1
             data, targets = data.to(model.device), targets.to(model.device)
             output = model(data)
             test_loss += F.nll_loss(output, targets, reduction='sum').item()
@@ -135,12 +138,15 @@ def test(model: BaseCNN, test_loader: DataLoader):
 
     # print accuracy for each class
     correct = 0
+    class_acc = {}
     for classname, correct_count in correct_pred.items():
         correct += correct_count
         accuracy = 100 * float(correct_count) / total_pred[classname]
+        class_acc[classname] = accuracy
         print(f'Accuracy for class: {classname:5s} is {correct_count}/{total_pred[classname]} ({accuracy:.2f}%)')
 
     test_loss /= len(test_loader.dataset)
     accuracy = 100. * correct / len(test_loader.dataset)
     print(
         f'\nTest set: Average loss: {test_loss:.4f}, Accuracy: {correct}/{len(test_loader.dataset)} ({accuracy:.2f}%)')
+    return test_loss, accuracy, class_acc.items()
