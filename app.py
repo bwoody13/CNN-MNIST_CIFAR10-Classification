@@ -36,7 +36,7 @@ else:
 # Streamlit Interface Setup
 st.title("MNIST & CIFAR10 Prediction App")
 st.write("Check the test set performace by clicking on the buttons for MNIST or CIFAR10. Note this may take a while. For faster testing and running models try using the notebook in the repo.")
-st.write("Draw a digit in the canvas below for MNIST or upload an image for CIFAR10.")
+st.write("Draw a digit in the canvas below for MNIST or upload an image for CIFAR10. Note since these are not source images and drawings, results may not be as accurate as with standard test data.")
 
 col1, col2 = st.columns(2)
 
@@ -75,7 +75,7 @@ with col1:
     st.write("Draw below to access a prediction for your digit between 0 and 9. Note to get more accurate results draw images in the same format and sizing as MNIST dataset has.")
     canvas_result = st_canvas(
         fill_color="rgba(255, 165, 0, 0.3)",
-        stroke_width=32,
+        stroke_width=30,
         stroke_color="#FFFFFF",
         background_color="#000000",
         height=280,
